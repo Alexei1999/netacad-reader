@@ -146,10 +146,10 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
       }
 
       try {
-        log.system('Rewrating config');
         const config = fs.readJSONSync(__dirname+'/package.json')
         config.currentPage = location;
         fs.writeJSONSync(__dirname+'/package.json', config)
+        log.system('Сonfig rewrited');
       } catch(e) {
         log.error(e.message)
         log.error('Skip setting currentpage in config');
