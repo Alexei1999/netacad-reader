@@ -8,13 +8,13 @@
   "maxReadTime": 10000,
   "name": "netacad-reader",
   "version": "1.0.0",
-  "description": "",
+  "description": "Netacad reader",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Alexei1999",
   "license": "ISC",
   "dependencies": {
     "chalk": "^4.1.0",
