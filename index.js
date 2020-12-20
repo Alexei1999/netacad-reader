@@ -27,9 +27,9 @@ const getLoginLogger = (page) => {
 const getReadingLogger = (page) => {
   let counter = 0;
 
-  return async(str) => {
-    log.reading(str, counter)
-    await page.screenshot({path: `./logs/reading/reading${counter++}.png`});
+  return async(str, folder) => {
+    log.reading(str, counter++)
+    await page.screenshot({path: `./logs/reading/reading${(folder || '') + counter}.png`});
   }
 }
 
@@ -137,7 +137,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
             else resolve()
           }, 1000)
         }))
-        readingLogger('Succesfull readed'+chalk.red(location))
+        readingLogger('Succesfull readed'+chalk.red(location), location)
 
       } catch(e) {
         log.error(e)
