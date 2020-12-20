@@ -175,18 +175,15 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
 
     let location = null
     while (location != finishPage) {
-        const url = page.url()
-        if (!hash) {
-            log.error('Cant get url')
-            location = location + '@next'
-        } else {
-            const hash = url.match(/#.*/)
-            if (!hash) {
-                log.error('Cant get current page')
-                location = location + '@next'
-            } else location = hash.toString().match(/\d+/g).join('.')
+        try {
+            const url = page.url()
+            const hash = url.match(/#.*/);
+            location = hash.toString().match(/\d+/g).join('.')
+        } catch (e) {
+            log.error(e.message)
+            location = location + '@next';
+            errorsLogger('Skip location direct definition')
         }
-
         await readingLogger('Reading location: ' + chalk.red(location))
         await page.waitForSelector('#page-menu-next-button')
         console.log(chalk.keyword('orange')('---'))
