@@ -25,6 +25,7 @@ const fs = require('fs-extra')
 
 fs.ensureDirSync(__dirname + '/logs/login')
 fs.ensureDirSync(__dirname + '/logs/reading')
+fs.ensureDirSync(__dirname + '/logs/errors')
 
 const log = {
     system: (str) =>
