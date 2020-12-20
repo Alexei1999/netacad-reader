@@ -1,8 +1,18 @@
+/*
+* All settings in package,json in root
+* login - "YourLogin@mail.com"
+* password - "YourPassword"
+* startPage - first page on book
+* finishPage - the last one
+* currentPage - the page to start reading from 
+* minReadTime - the minimum time for reading a block of text for one click of the scroll
+* maxReadTime - the maximum one
+*/
+const { login, password, startPage, currentPage, finishPage, minReadTime, maxReadTime } = require('./package.json');
+
 const puppeteer = require('puppeteer');
 const chalk = require('chalk');
 const fs = require('fs-extra');
-
-const { login, password, startPage, currentPage, finishPage } = require('./package.json');
 
 fs.ensureDirSync(__dirname+'/logs/login');
 fs.ensureDirSync(__dirname+'/logs/reading');
@@ -126,7 +136,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
           timeout: 10000
         });
         
-        await frame.$eval('#text', element => new Promise(resolve => {
+        await frame.$eval('#text', (element, minReadTime, maxReadTime) => new Promise(resolve => {
           let height = 0;
           
           let timeout = setTimeout(function scroll() {
@@ -134,10 +144,10 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
 
             element.scrollBy(height, height = height + 100);
             if (height < element.scrollHeight)
-              setTimeout(scroll, Math.floor(Math.random()*(5000 - 2000) + 2000))
+              setTimeout(scroll, Math.floor(Math.random()*(maxReadTime - minReadTime) + minReadTime))
             else resolve()
           }, 1000)
-        }))
+        }), minReadTime, maxReadTime)
         readingLogger('Succesfull readed '+chalk.red(location), location)
 
       } catch(e) {
