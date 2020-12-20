@@ -92,6 +92,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
         await loginClickWithWaiting('#bg-0', 'Choosed background')
         
         const [a,b,c,d] = (currentPage || startPage).split('.');
+        if (error) [a, b, c, d] = startPage.split('.');
         
         await loginClickWithWaiting(`a[href="#${a}"]`, `Clicked ${chalk.red(a)} course`)
         await loginClickWithWaiting(`a[href="#${a}.${b}"]`, `Clicked ${chalk.red(a)}.${chalk.red(b)} subcourse`)
