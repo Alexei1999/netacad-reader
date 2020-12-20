@@ -141,17 +141,18 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
         readingLogger('Succesfull readed '+chalk.red(location), location)
 
       } catch(e) {
-        log.error(e)
-        errorsLogger(' Skip the '+ chalk.red(location));
+        log.error(e.message)
+        errorsLogger('Skip the '+ chalk.red(location))
       }
 
       try {
         log.system('Rewrating config');
-        const config = fs.readJSONSync(__dirname+'/package.json');
+        const config = fs.readJSONSync(__dirname+'/package.json')
         config.currentPage = location;
         fs.writeJSONSync(__dirname+'/package.json', config)
       } catch(e) {
-
+        log.error(e.message)
+        log.error('Skip setting currentpage in config');
       }
 
       await page.click('#page-menu-next-button');
