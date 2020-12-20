@@ -1,0 +1,21 @@
+{
+  "login": "login",
+  "password": "password",
+  "courseNumber": "1.0.1.1",
+  "name": "netacad-reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "download": "^8.0.0",
+    "fs-extra": "^9.0.1",
+    "puppeteer": "^5.5.0"
+  }
+}
