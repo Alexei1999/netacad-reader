@@ -29,7 +29,7 @@ const getReadingLogger = (page) => {
 
   return async(str, folder) => {
     log.reading(str, counter++)
-    await page.screenshot({path: `./logs/reading/reading${(folder || '') + counter}.png`});
+    await page.screenshot({path: `./logs/reading/${(folder || 'reading') + '-' + counter}.png`});
   }
 }
 
