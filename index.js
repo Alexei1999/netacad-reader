@@ -137,7 +137,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
             else resolve()
           }, 1000)
         }))
-        readingLogger('Succesfull readed'+chalk.red(location), location)
+        readingLogger('Succesfull readed '+chalk.red(location), location)
 
       } catch(e) {
         log.error(e)
