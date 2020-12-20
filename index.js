@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 
-const { login, password, courseNumber } = require('./package.json');
+const { login, password, startPage, currentPage, finishPage } = require('./package.json');
 
 fs.ensureDirSync(__dirname+'/logs/login');
 fs.ensureDirSync(__dirname+'/logs/reading');
@@ -91,7 +91,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
         log.login('Stop waiting for loader');
         await loginClickWithWaiting('#bg-0', 'Choosed background')
         
-        const [a,b,c,d] = courseNumber.split('.');
+        const [a,b,c,d] = (currentPage || startPage).split('.');
         
         await loginClickWithWaiting(`a[href="#${a}"]`, `Clicked ${chalk.red(a)} course`)
         await loginClickWithWaiting(`a[href="#${a}.${b}"]`, `Clicked ${chalk.red(a)}.${chalk.red(b)} subcourse`)
@@ -110,7 +110,7 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
     } while(error);
     
     let location = null;
-    while(location != '11.3.1.3') {
+    while(location != finishPage) {
       await readingLogger('Reading location: '+chalk.red((location = page.url().match(/#.*/)?.toString()?.match(/\d+/g)?.join('.'))));
       await page.waitForSelector('#page-menu-next-button');
       console.log(chalk.keyword('orange')('---'))
@@ -143,6 +143,16 @@ const getClickWithWaiting = (page, loger) => async(selector, logs) => {
         log.error(e)
         errorsLogger(' Skip the '+ chalk.red(location));
       }
+
+      try {
+        log.system('Rewrating config');
+        const config = fs.readJSONSync(__dirname+'/package.json');
+        config.currentPage = location;
+        fs.writeJSONSync(__dirname+'/package.json', config)
+      } catch(e) {
+
+      }
+
       await page.click('#page-menu-next-button');
     }
    
