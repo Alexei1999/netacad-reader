@@ -188,6 +188,8 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                         timeout: 10000
                     })
 
+                    await frame.click('#text');
+
                     await frame.$eval(
                         '#text',
                         (element, minReadTime, maxReadTime) =>
