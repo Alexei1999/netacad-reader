@@ -37,7 +37,7 @@ const log = {
     browser: (str) => console.log(chalk.keyword('orange')(str)),
     error: (str, i) =>
         console.log(
-            chalk.red(
+            chalk.redBright(
                 'Puppeteer:error - ' +
                     str +
                     ' ' +
@@ -139,7 +139,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             log.login('Stop waiting for loader')
             await loginClickWithWaiting('#bg-0', 'Choosed background')
 
-            const [a, b, c, d] = (currentPage || startPage).split('.')
+            let [a, b, c, d] = (currentPage || startPage).split('.')
             if (error) [a, b, c, d] = startPage.split('.')
 
             await loginClickWithWaiting(
@@ -163,6 +163,90 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 )}.${chalk.red(d)} subcourse`
             )
             error = false
+
+            let location = null
+            while (location != finishPage) {
+                try {
+                    const url = page.url()
+                    const hash = url.match(/#.*/)
+                    location = hash.toString().match(/\d+/g).join('.')
+                } catch (e) {
+                    log.error(e.message)
+                    location = location + '@next'
+                    errorsLogger('Skip location direct definition')
+                }
+                await readingLogger('Reading location: ' + chalk.red(location))
+                await page.waitForSelector('#page-menu-next-button')
+                console.log(chalk.keyword('orange')('---'))
+
+                try {
+                    await page.waitForSelector('#frame')
+                    const elementHandle = await page.$('#frame')
+                    const frame = await elementHandle.contentFrame()
+
+                    await frame.waitForSelector('#text', {
+                        timeout: 10000
+                    })
+
+                    await frame.$eval(
+                        '#text',
+                        (element, minReadTime, maxReadTime) =>
+                            new Promise((resolve) => {
+                                let height = 0
+
+                                let timeout = setTimeout(function scroll() {
+                                    console.log(
+                                        'scrolled ',
+                                        height,
+                                        '/',
+                                        element.scrollHeight
+                                    )
+
+                                    element.scrollBy(
+                                        height,
+                                        (height = height + 100)
+                                    )
+                                    if (height < element.scrollHeight)
+                                        setTimeout(
+                                            scroll,
+                                            Math.floor(
+                                                Math.random() *
+                                                    (maxReadTime -
+                                                        minReadTime) +
+                                                    minReadTime
+                                            )
+                                        )
+                                    else resolve()
+                                }, 1000)
+                            }),
+                        minReadTime,
+                        maxReadTime
+                    )
+                    readingLogger(
+                        'Succesfull readed ' + chalk.red(location),
+                        location
+                    )
+                } catch (e) {
+                    log.error(e.message)
+                    if (e.message.includes('#text')) {
+                        errorsLogger('Skip the ' + chalk.red(location))
+                    } else {
+                        throw Error(e)
+                    }
+                }
+
+                try {
+                    const config = fs.readJSONSync(__dirname + '/package.json')
+                    config.currentPage = location
+                    fs.writeJSONSync(__dirname + '/package.json', config)
+                    log.system('Сonfig rewrited')
+                } catch (e) {
+                    log.error(e.message)
+                    log.error('Skip setting currentpage in config')
+                }
+
+                await page.click('#page-menu-next-button')
+            }
         } catch (e) {
             error = true
             log.error(e)
@@ -173,79 +257,6 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             log.system('Cookies cleared')
         }
     } while (error)
-
-    let location = null
-    while (location != finishPage) {
-        try {
-            const url = page.url()
-            const hash = url.match(/#.*/);
-            location = hash.toString().match(/\d+/g).join('.')
-        } catch (e) {
-            log.error(e.message)
-            location = location + '@next';
-            errorsLogger('Skip location direct definition')
-        }
-        await readingLogger('Reading location: ' + chalk.red(location))
-        await page.waitForSelector('#page-menu-next-button')
-        console.log(chalk.keyword('orange')('---'))
-
-        try {
-            await page.waitForSelector('#frame')
-            const elementHandle = await page.$('#frame')
-            const frame = await elementHandle.contentFrame()
-
-            await frame.waitForSelector('#text', {
-                timeout: 10000
-            })
-
-            await frame.$eval(
-                '#text',
-                (element, minReadTime, maxReadTime) =>
-                    new Promise((resolve) => {
-                        let height = 0
-
-                        let timeout = setTimeout(function scroll() {
-                            console.log(
-                                'scrolled ',
-                                height,
-                                '/',
-                                element.scrollHeight
-                            )
-
-                            element.scrollBy(height, (height = height + 100))
-                            if (height < element.scrollHeight)
-                                setTimeout(
-                                    scroll,
-                                    Math.floor(
-                                        Math.random() *
-                                            (maxReadTime - minReadTime) +
-                                            minReadTime
-                                    )
-                                )
-                            else resolve()
-                        }, 1000)
-                    }),
-                minReadTime,
-                maxReadTime
-            )
-            readingLogger('Succesfull readed ' + chalk.red(location), location)
-        } catch (e) {
-            log.error(e.message)
-            errorsLogger('Skip the ' + chalk.red(location))
-        }
-
-        try {
-            const config = fs.readJSONSync(__dirname + '/package.json')
-            config.currentPage = location
-            fs.writeJSONSync(__dirname + '/package.json', config)
-            log.system('Сonfig rewrited')
-        } catch (e) {
-            log.error(e.message)
-            log.error('Skip setting currentpage in config')
-        }
-
-        await page.click('#page-menu-next-button')
-    }
 
     await browser.close()
     log.system('Browser closed')
