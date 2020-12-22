@@ -137,7 +137,12 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             log.login('Start waiting for loader')
             await page.waitForTimeout(10 * 1000)
             log.login('Stop waiting for loader')
-            await loginClickWithWaiting('#bg-0', 'Choosed background')
+            try {
+                await loginClickWithWaiting('#bg-0', 'Choosed background')
+            } catch(e) {
+                log.error(e.message)
+                errorsLogger('Skip background choose')
+            }
 
             let [a, b, c, d] = (currentPage || startPage).split('.')
             if (error) [a, b, c, d] = startPage.split('.')
