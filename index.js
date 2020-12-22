@@ -145,7 +145,6 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             }
 
             let [a, b, c, d] = (currentPage || startPage).split('.')
-            if (error) [a, b, c, d] = startPage.split('.')
 
             await loginClickWithWaiting(
                 `a[href="#${a}"]`,
@@ -257,7 +256,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
         } catch (e) {
             error = true
             log.error(e)
-            errorsLogger('Login failed. Trying again...')
+            errorsLogger('Making session failed. Trying again...')
             const client = await page.target().createCDPSession()
             await client.send('Network.clearBrowserCookies')
             await client.send('Network.clearBrowserCache')
