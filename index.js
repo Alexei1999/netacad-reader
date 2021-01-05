@@ -66,7 +66,7 @@ const log = {
         )
 }
 
-const getLoginLogger = (page) => {
+const getLoginLoger = (page) => {
     let counter = 0
 
     return async (str) => {
@@ -75,7 +75,7 @@ const getLoginLogger = (page) => {
     }
 }
 
-const getReadingLogger = (page) => {
+const getReadingLoger = (page) => {
     let counter = 0
 
     return async (str, folder) => {
@@ -86,7 +86,7 @@ const getReadingLogger = (page) => {
     }
 }
 
-const getErrorsLogger = (page) => {
+const getErrorsLoger = (page) => {
     let counter = 0
 
     return async (str) => {
@@ -106,11 +106,11 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
     const page = await browser.newPage()
     log.system('Context initialized')
     page.on('console', (obj) => log.browser(obj.text()))
-    let loginLogger = getLoginLogger(page)
-    let readingLogger = getReadingLogger(page)
-    const errorsLogger = getErrorsLogger(page)
-    log.system('Loggers initialized')
-    const loginClickWithWaiting = getClickWithWaiting(page, loginLogger)
+    let loginLoger = getLoginLoger(page)
+    let readingLoger = getReadingLoger(page)
+    const errorsLoger = getErrorsLoger(page)
+    log.system('Logers initialized')
+    const loginClickWithWaiting = getClickWithWaiting(page, loginLoger)
     log.system('Utils initialized')
 
     let error = false
@@ -118,18 +118,18 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
 
     do {
         if (error) {
-            loginLogger = getLoginLogger(page)
-            log.system('Loggers reinitialized')
+            loginLoger = getLoginLoger(page)
+            log.system('Logers reinitialized')
         }
         try {
-            await loginLogger('Start login')
+            await loginLoger('Start login')
             await page.goto('https://www.netacad.com/portal/saml_login')
             await page.waitForNavigation()
             await page.waitForSelector('.form-group__text')
-            await loginLogger('Intered login page')
+            await loginLoger('Intered login page')
             await page.waitForSelector('.input--dirty.input--valid.inputDom')
             await page.type('.input--dirty.input--valid.inputDom', login)
-            await loginLogger('Typed login ' + chalk.red(login))
+            await loginLoger('Typed login ' + chalk.red(login))
             if (!error) {
                 await page.click('input[value="Next"]')
             } else {
@@ -137,7 +137,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             }
             await page.waitForSelector('#password')
             await page.type('#password', password)
-            await loginLogger('Typed password ' + chalk.red(password))
+            await loginLoger('Typed password ' + chalk.red(password))
             await page.click('#kc-login')
             await loginClickWithWaiting('.course-launcher', 'Launched course')
             await loginClickWithWaiting('#launchlink', 'Open course')
@@ -148,7 +148,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 await loginClickWithWaiting('#bg-0', 'Choosed background')
             } catch (e) {
                 log.error(e.message)
-                await errorsLogger('Skip background choose')
+                await errorsLoger('Skip background choose')
             }
 
             let [a, b, c, d] = (currentPage || startPage).split('.')
@@ -190,12 +190,12 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 } catch (e) {
                     log.error(e.message)
                     location = location + '@next'
-                    await errorsLogger('Skip location direct definition')
+                    await errorsLoger('Skip location direct definition')
                 }
-                await readingLogger('Reading location: ' + chalk.red(location))
                 await page.waitForSelector('#page-menu-next-button')
-                console.log(chalk.keyword('orange')('---'))
 
+                log.reading('Reading location: ' + chalk.red(location))
+                console.log(chalk.keyword('orange')('---'))
                 try {
                     await page.waitForSelector('#frame')
                     const elementHandle = await page.$('#frame')
@@ -241,7 +241,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                         minReadTime,
                         maxReadTime
                     )
-                    await readingLogger(
+                    await readingLoger(
                         'Succesfull readed ' + chalk.red(location),
                         location
                     )
@@ -252,12 +252,12 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                             () => window.navigator.onLine
                         )
                         if (!onLine) {
-                            await errorsLogger(
+                            await errorsLoger(
                                 'Internet connection lost, relogin...'
                             )
                             throw Error(e)
                         }
-                        await errorsLogger('Skip the ' + chalk.red(location))
+                        await errorsLoger('Skip the ' + chalk.red(location))
                     } else {
                         throw Error(e)
                     }
@@ -288,7 +288,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 )
                 log.error('Check the correctness of the selected page ')
             }
-            await errorsLogger('Making session failed. Trying again...')
+            await errorsLoger('Making session failed. Trying again...')
             const client = await page.target().createCDPSession()
             await client.send('Network.clearBrowserCookies')
             await client.send('Network.clearBrowserCache')
