@@ -23,9 +23,13 @@ const puppeteer = require('puppeteer')
 const chalk = require('chalk')
 const fs = require('fs-extra')
 
-fs.ensureDirSync(__dirname + '/logs/login')
-fs.ensureDirSync(__dirname + '/logs/reading')
-fs.ensureDirSync(__dirname + '/logs/errors')
+;['login', 'reading', 'errors'].forEach((folder) => {
+    fs.ensureDirSync(__dirname + '/logs/' + folder)
+    const files = fs.readdirSync(__dirname + '/logs/' + folder)
+    files.forEach((file) =>
+        fs.unlinkSync(__dirname + '/logs/' + folder + '/' + file)
+    )
+})
 
 const log = {
     system: (str) =>
@@ -41,9 +45,8 @@ const log = {
                 'Puppeteer:error - ' +
                     str +
                     ' ' +
-                    i +
-                    ':' +
-                    new Date().toLocaleTimeString()
+                    (i !== undefined ? `(${i})-` : '') +
+                    +new Date().toLocaleTimeString()
             )
         ),
     login: (str, i) =>
@@ -109,6 +112,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
     log.system('Utils initialized')
 
     let error = false
+
     do {
         if (error) {
             loginLogger = getLoginLogger(page)
@@ -139,7 +143,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             log.login('Stop waiting for loader')
             try {
                 await loginClickWithWaiting('#bg-0', 'Choosed background')
-            } catch(e) {
+            } catch (e) {
                 log.error(e.message)
                 errorsLogger('Skip background choose')
             }
@@ -192,7 +196,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                         timeout: 10000
                     })
 
-                    await frame.click('#text');
+                    await frame.click('#text')
 
                     await frame.$eval(
                         '#text',
@@ -235,6 +239,13 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 } catch (e) {
                     log.error(e.message)
                     if (e.message.includes('#text')) {
+                        const onLine = await page.evaluate(
+                            () => window.navigator.onLine
+                        )
+                        if (!onLine) {
+                            errorsLogger('Internet connection lost, relogin...')
+                            throw Error(e)
+                        }
                         errorsLogger('Skip the ' + chalk.red(location))
                     } else {
                         throw Error(e)
@@ -255,7 +266,11 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             }
         } catch (e) {
             error = true
-            log.error(e)
+            log.error(e.message)
+            if (e.message.includes('a[href="')) {
+                log.error('Cant pick ' + chalk.blue(currentPage))
+                log.error('Check the correctness of the selected page')
+            }
             errorsLogger('Making session failed. Trying again...')
             const client = await page.target().createCDPSession()
             await client.send('Network.clearBrowserCookies')
