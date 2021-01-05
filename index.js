@@ -48,7 +48,7 @@ const log = {
                     str +
                     ' ' +
                     (i !== undefined ? `(${i})-` : '') +
-                    +new Date().toLocaleTimeString()
+                    new Date().toLocaleTimeString()
             )
         ),
     login: (str, i) =>
