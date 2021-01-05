@@ -8,6 +8,7 @@
  * currentPage - the page to start reading from
  * minReadTime - the minimum time for reading a block of text for one click of the scroll
  * maxReadTime - the maximum one
+ * maxRepeatTimes - number of unseccesfull tryings
  */
 const {
     login,
@@ -16,7 +17,8 @@ const {
     currentPage,
     finishPage,
     minReadTime,
-    maxReadTime
+    maxReadTime,
+    maxRepeatTimes
 } = require('./package.json')
 
 const puppeteer = require('puppeteer')
@@ -96,7 +98,7 @@ const getErrorsLogger = (page) => {
 const getClickWithWaiting = (page, loger) => async (selector, logs) => {
     await page.waitForSelector(selector)
     await page.click(selector)
-    if (loger) loger(logs)
+    if (loger) await loger(logs)
 }
 
 ;(async () => {
@@ -112,6 +114,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
     log.system('Utils initialized')
 
     let error = false
+    let wrongPage = 0
 
     do {
         if (error) {
@@ -145,10 +148,16 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 await loginClickWithWaiting('#bg-0', 'Choosed background')
             } catch (e) {
                 log.error(e.message)
-                errorsLogger('Skip background choose')
+                await errorsLogger('Skip background choose')
             }
 
             let [a, b, c, d] = (currentPage || startPage).split('.')
+            if (wrongPage > maxRepeatTimes) {
+                wrongPage = 0
+                ;[a, b, c, d] = startPage.split('.')
+                log.error('Cant pick ' + chalk.blue(currentPage))
+                log.error('Setting ' + chalk.blue(startPage) + ' instead')
+            }
 
             await loginClickWithWaiting(
                 `a[href="#${a}"]`,
@@ -181,7 +190,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                 } catch (e) {
                     log.error(e.message)
                     location = location + '@next'
-                    errorsLogger('Skip location direct definition')
+                    await errorsLogger('Skip location direct definition')
                 }
                 await readingLogger('Reading location: ' + chalk.red(location))
                 await page.waitForSelector('#page-menu-next-button')
@@ -232,7 +241,7 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                         minReadTime,
                         maxReadTime
                     )
-                    readingLogger(
+                    await readingLogger(
                         'Succesfull readed ' + chalk.red(location),
                         location
                     )
@@ -243,10 +252,12 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
                             () => window.navigator.onLine
                         )
                         if (!onLine) {
-                            errorsLogger('Internet connection lost, relogin...')
+                            await errorsLogger(
+                                'Internet connection lost, relogin...'
+                            )
                             throw Error(e)
                         }
-                        errorsLogger('Skip the ' + chalk.red(location))
+                        await errorsLogger('Skip the ' + chalk.red(location))
                     } else {
                         throw Error(e)
                     }
@@ -268,10 +279,16 @@ const getClickWithWaiting = (page, loger) => async (selector, logs) => {
             error = true
             log.error(e.message)
             if (e.message.includes('a[href="')) {
-                log.error('Cant pick ' + chalk.blue(currentPage))
-                log.error('Check the correctness of the selected page')
+                log.error(
+                    'Cant pick ' +
+                        chalk.blue(currentPage) +
+                        ' ' +
+                        ++wrongPage +
+                        ' times'
+                )
+                log.error('Check the correctness of the selected page ')
             }
-            errorsLogger('Making session failed. Trying again...')
+            await errorsLogger('Making session failed. Trying again...')
             const client = await page.target().createCDPSession()
             await client.send('Network.clearBrowserCookies')
             await client.send('Network.clearBrowserCache')
