@@ -303,10 +303,10 @@ const initLogers = (page) => {
         }
 
         try {
-          const config = fs.readJSONSync(__dirname + "/package.json");
+          const config = fs.readJSONSync(__dirname + "/config.json");
           config.currentPage = location;
-          fs.writeJSONSync(__dirname + "/package.json", config, {});
-          log.system("Package.json rewrited");
+          fs.writeJSONSync(__dirname + "/config.json", config, {});
+          log.system("config.json rewrited");
         } catch (e) {
           log.error(e.message);
           log.error("Skip setting currentpage in config");
