@@ -1,0 +1,13 @@
+{
+  "headlessMode": true,
+  "bookSelector": "<css selector on course page>",
+  "login": "<Loging@mail.com>",
+  "password": "<password>",
+  "startPage": "1.0.1.1",
+  "currentPage": null,
+  "finishPage": "6.2.1.1",
+  "minReadTime": 5000,
+  "maxReadTime": 10000,
+  "maxWrongPageSelects": 100,
+  "maxErrorNumber": 200
+}
